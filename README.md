@@ -18,8 +18,40 @@ decoders DecodeJSON and DecodeXML have been removed.
 
 ---
 
-This package provides helpers for wrapping endpoints.  It is based upon
-[nject](https://github.com/muir/nject).
+Nvelope provides pre-defined handlers for basic endpoint tasks.  When used
+in combination with 
+[npoint](http://github.com/muir/npoint) or 
+[nape](http://github.com/muir/nape), 
+all that's left is the business logic.
+It is based upon [nject](https://github.com/muir/nject).
+
+### An Example
+
+```go
+type ExampleRequestBundle struct {
+	Request     PostBodyModel `nvelope:"model"`
+	With        string        `nvelope:"path,name=with"`
+	Parameters  int64         `nvelope:"path,name=parameters"`
+	Friends     []int         `nvelope:"query,name=friends"`
+	ContentType string        `nvelope:"header,name=Content-Type"`
+}
+
+func Service(router *mux.Router) {
+	service := nape.RegisterServiceWithMux("example", router)
+	service.RegisterEndpoint("/some/path",
+		nvelope.LoggerFromStd(log.Default()),
+		nvelope.InjectWriter,
+		nvelope.EncodeJSON,
+		nvelope.CatchPanic,
+		nvelope.Nil204,
+		nvelope.ReadBody,
+		DecodeJSON,
+		func (req ExampleRequestBundle) (nvelope.Response, error) {
+			....
+		},
+	).Methods("POST")
+}
+```
 
 ## Typical chain
 
