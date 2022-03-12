@@ -4,7 +4,6 @@
 ![unit tests](https://github.com/muir/nvelope/actions/workflows/go.yml/badge.svg)
 [![report card](https://goreportcard.com/badge/github.com/muir/nvelope)](https://goreportcard.com/report/github.com/muir/nvelope)
 [![codecov](https://codecov.io/gh/muir/nvelope/branch/main/graph/badge.svg)](https://codecov.io/gh/muir/nvelope)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmuir%2Fnvelope.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmuir%2Fnvelope?ref=badge_shield)
 
 Install:
 
