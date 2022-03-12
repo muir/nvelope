@@ -67,7 +67,7 @@ func captureOutputFunc(out func(...interface{}), path string, f interface{}) fun
 		nvelope.CatchPanic,
 		nvelope.Nil204,
 		nvelope.ReadBody,
-		DecodeJSON,
+		nape.DecodeJSON,
 		f,
 	).Methods("POST")
 	ts := httptest.NewServer(router)
