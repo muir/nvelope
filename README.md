@@ -1,11 +1,14 @@
 # nvelope - http endpoint helpers in an nject world
 
-[![GoDoc](https://godoc.org/github.com/muir/nject/nserver?status.png)](http://godoc.org/github.com/muir/nject/nvelope)
-[![Coverage](http://gocover.io/_badge/github.com/muir/nject/nvelope)](https://gocover.io/github.com/muir/nject/nvelope)
+[![GoDoc](https://godoc.org/github.com/muir/nvelope?status.png)](https://pkg.go.dev/github.com/muir/nvelope)
+![unit tests](https://github.com/muir/nvelope/actions/workflows/go.yml/badge.svg)
+[![report card](https://goreportcard.com/badge/github.com/muir/nvelope)](https://goreportcard.com/report/github.com/muir/nvelope)
+[![codecov](https://codecov.io/gh/muir/nvelope/branch/main/graph/badge.svg)](https://codecov.io/gh/muir/nvelope)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmuir%2Fnvelope.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmuir%2Fnvelope?ref=badge_shield)
 
 Install:
 
-	go get github.com/muir/nject
+	go get github.com/muir/nvelope
 
 ---
 
@@ -15,7 +18,8 @@ decoders DecodeJSON and DecodeXML have been removed.
 
 ---
 
-This package provides helpers for wrapping endpoints.
+This package provides helpers for wrapping endpoints.  It is based upon
+[nject](https://github.com/muir/nject).
 
 ## Typical chain
 
