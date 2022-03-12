@@ -11,6 +11,7 @@ Install:
 
 ---
 
+Prior to [nject](https://github.com/muir/nject) version 0.2.0, this was part of that repo.
 As of release 0.2.0, GenerateDecoder no longer depends upon gorilla/mux.  Some additional
 effort is now required to extract data from path/route variables and the pre-defined
 decoders DecodeJSON and DecodeXML have been removed.
