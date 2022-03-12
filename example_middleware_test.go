@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"time"
 
-	"github.com/muir/nject/npoint"
-	"github.com/muir/nject/nvelope"
+	"github.com/muir/nape"
+	"github.com/muir/nvelope"
 
 	"github.com/gorilla/mux"
 )
@@ -56,7 +56,7 @@ func AuthorizationMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func ServiceWithMiddleware(router *mux.Router) {
-	service := npoint.RegisterServiceWithMux("example", router)
+	service := nape.RegisterServiceWithMux("example", router)
 	service.RegisterEndpoint("/a/path/{with}/{parameters}",
 		// order matters and this is a correct order
 		nvelope.MiddlewareBaseWriter(RequestTimingMiddleware),
@@ -74,7 +74,7 @@ func ServiceWithMiddleware(router *mux.Router) {
 }
 
 // Example shows an injection chain handling a single endpoint using nject,
-// npoint, and nvelope.
+// nape, and nvelope.
 func ExampleServiceWithMiddleware() {
 	r := mux.NewRouter()
 	ServiceWithMiddleware(r)

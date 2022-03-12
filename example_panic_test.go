@@ -3,7 +3,7 @@ package nvelope_test
 import (
 	"fmt"
 
-	"github.com/muir/nject/nvelope"
+	"github.com/muir/nvelope"
 )
 
 func ExampleRecoverStack() {

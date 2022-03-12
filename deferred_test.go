@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/muir/nject/nvelope"
+	"github.com/muir/nvelope"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

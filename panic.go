@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/muir/nject/nject"
+	"github.com/muir/nject"
 
 	"github.com/pkg/errors"
 )

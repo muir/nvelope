@@ -1,6 +1,7 @@
 package nvelope_test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -9,8 +10,8 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/muir/nject/nape"
-	"github.com/muir/nject/nvelope"
+	"github.com/muir/nape"
+	"github.com/muir/nvelope"
 
 	"github.com/gorilla/mux"
 )
@@ -61,10 +62,10 @@ func HandleExampleEndpoint(req ExampleRequestBundle) (nvelope.Response, error) {
 	}
 }
 
-var DecodeJSON = GenerateDecoder(
-	WithDecoder("application/json", json.Unmarshal),
-	WithDefaultContentType("application/json"),
-	WithPathVarsFunction(func(r *http.Request) RouteVarLookup {
+var DecodeJSON = nvelope.GenerateDecoder(
+	nvelope.WithDecoder("application/json", json.Unmarshal),
+	nvelope.WithDefaultContentType("application/json"),
+	nvelope.WithPathVarsFunction(func(r *http.Request) nvelope.RouteVarLookup {
 		vars := mux.Vars(r)
 		return func(v string) string {
 			return vars[v]
@@ -82,7 +83,7 @@ func Service(router *mux.Router) {
 		nvelope.CatchPanic,
 		nvelope.Nil204,
 		nvelope.ReadBody,
-		nvelope.DecodeJSON,
+		DecodeJSON,
 		HandleExampleEndpoint,
 	).Methods("POST")
 }

@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/muir/nject/nject"
+	"github.com/muir/nject"
 	"github.com/muir/reflectutils"
 
 	"github.com/pkg/errors"
@@ -124,7 +124,7 @@ type RouteVarLookup func(string) string
 //	})
 func WithPathVarsFunction(pathVarFunction interface{}) DecodeInputsGeneratorOpt {
 	return func(o *eigo) {
-	o.pathVarFunction = pathVarFunction
+		o.pathVarFunction = pathVarFunction
 	}
 }
 
@@ -311,8 +311,8 @@ func GenerateDecoder(
 						f := model.FieldByIndex(field.Index)
 						return errors.Wrapf(
 							unpacker.single("path", f, routeVarLookup(name)),
-								"path element %s into field %s",
-								name, field.Name)
+							"path element %s into field %s",
+							name, field.Name)
 					})
 				case "header":
 					if unpacker.multi != nil {
@@ -415,7 +415,7 @@ func GenerateDecoder(
 				if rvl.Type().Kind() != reflect.Func || rvl.Type().NumOut() != 1 || !rvl.Type().Out(0).AssignableTo(rvlType) {
 					return nil, errors.Errorf("invalid type signature for function provided by WithPathVarsFunction: %T, want a function that returns RouteVarLookup", options.pathVarFunction)
 				}
-				rvlInputMap := make([]int, rvl.Type().NumIn())
+				rvlInputMap = make([]int, rvl.Type().NumIn())
 				for i := 0; i < len(rvlInputMap); i++ {
 					rvlInputMap[i] = addToInputs(&inputs, rvl.Type().In(i))
 				}
@@ -978,7 +978,7 @@ func contentUnpacker(
 }
 
 var (
-	rvlType      = reflect.TypeOf(RouteVarLookup(nil))
+	rvlType              = reflect.TypeOf(RouteVarLookup(nil))
 	httpRequestType      = reflect.TypeOf(&http.Request{})
 	bodyType             = reflect.TypeOf(Body{})
 	textUnmarshallerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()

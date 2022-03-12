@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/muir/nject/nvelope"
+	"github.com/muir/nvelope"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"

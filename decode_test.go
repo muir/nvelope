@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/muir/nject/nvelope"
+	"github.com/muir/nvelope"
 
 	"github.com/stretchr/testify/assert"
 )
