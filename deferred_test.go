@@ -50,7 +50,7 @@ func TestFlush(t *testing.T) {
 	tw := &testResponseWriter{header: make(http.Header)}
 	tw.Header().Set("a", "b")
 	w := nvelope.NewDeferredWriter(tw)
-	w.Write([]byte("howdy"))
+	_, _ = w.Write([]byte("howdy"))
 	assert.Empty(t, tw.buffer, "no write before flush")
 	assert.Equal(t, "b", w.Header().Get("a"), "original header still there")
 	w.Header().Set("c", "d")
@@ -74,15 +74,15 @@ func TestReset(t *testing.T) {
 	tw.Header().Set("a", "b")
 	w := nvelope.NewDeferredWriter(tw)
 
-	w.Write([]byte("doody"))
+	_, _ = w.Write([]byte("doody"))
 	w.Header().Set("c", "e")
 	w.Header().Set("a", "e")
 	w.Header().Set("d", "g")
 	w.WriteHeader(109)
 
-	w.Reset()
+	_ = w.Reset()
 
-	w.Write([]byte("howdy"))
+	_, _ = w.Write([]byte("howdy"))
 	w.Header().Set("c", "d")
 	w.Header().Set("a", "d")
 	w.WriteHeader(303)
@@ -101,7 +101,7 @@ func TestFlushErrShortWrite(t *testing.T) {
 	w := nvelope.NewDeferredWriter(tw)
 
 	tw.simulateWriteError = io.ErrShortWrite
-	w.Write([]byte("howdy"))
+	_, _ = w.Write([]byte("howdy"))
 
 	require.NoError(t, w.Flush(), "flush")
 	assert.Equal(t, "howdy", string(tw.buffer), "write after flush")
@@ -112,7 +112,7 @@ func TestFlushError(t *testing.T) {
 	w := nvelope.NewDeferredWriter(tw)
 
 	tw.simulateWriteError = fmt.Errorf("an error")
-	w.Write([]byte("howdy"))
+	_, _ = w.Write([]byte("howdy"))
 
 	assert.Error(t, w.Flush(), "flush error")
 }
@@ -128,11 +128,11 @@ func TestPreserveHeader(t *testing.T) {
 
 	w.PreserveHeader()
 
-	w.Reset()
+	_ = w.Reset()
 	w.Header().Set("a", "x")
 	w.Header().Set("d", "x")
 
-	w.Reset()
+	_ = w.Reset()
 	w.Flush()
 
 	assert.Equal(t, "B", tw.Header().Get("a"), "new header written - a")

@@ -31,7 +31,7 @@ func AuthenticationMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		a := r.Header.Get("Authentication")
 		if a != "good" {
 			w.WriteHeader(401)
-			w.Write([]byte("Invalid authentication"))
+			_, _ = w.Write([]byte("Invalid authentication"))
 			fmt.Println("authentication end (failed)")
 			return
 		}
@@ -46,7 +46,7 @@ func AuthorizationMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		vars := mux.Vars(r)
 		if vars["with"] != "john" {
 			w.WriteHeader(403)
-			w.Write([]byte("Invalid authorization"))
+			_, _ = w.Write([]byte("Invalid authorization"))
 			fmt.Println("authorization end (failed)")
 			return
 		}
