@@ -228,6 +228,8 @@ var deepObjectRE = regexp.MustCompile(`^([^\[]+)\[([^\]]+)\]$`) // id[name]
 // unpack strings into struct fields.  That provides support for time.Duration and anything
 // that implements encoding.TextUnmarshaler or flag.Value.  Additional custom decoders can
 // be registered with https://pkg.go.dev/github.com/muir/reflectutils#RegisterStringSetter .
+//
+// There are a couple of example decoders defined in https://github.com/muir/nape .
 func GenerateDecoder(
 	genOpts ...DecodeInputsGeneratorOpt,
 ) interface{} {
