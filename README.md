@@ -85,7 +85,7 @@ response encoders can be created with `nvelope.MakeResponseEncoder`.
 Have the endpoint return a 500 when there is a panic.  
 `nvelope.SetErrorOnPanic()` is a function that can be deferred to 
 notice a panic and create a useful error.  In an injection
-chain, use `nvelpe.CatchPanic`.
+chain, use `nvelope.CatchPanic`.
 
 ### Return 204 for nil responses
 

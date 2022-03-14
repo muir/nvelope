@@ -47,7 +47,7 @@ func SetErrorOnPanic(ep *error, log BasicLogger) {
 	}
 }
 
-// CatchPanic is a wrapp that catches downstream panics and returns
+// CatchPanic is a wrapper that catches downstream panics and returns
 // an error a downsteam provider panic's.
 var CatchPanic = nject.Provide("catch-panic", catchPanicInjector)
 

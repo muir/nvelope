@@ -20,14 +20,16 @@ type DeferredWriter struct {
 }
 
 // NewDeferredWriter returns a DeferredWriter based on a
-// base ResponseWriter
-func NewDeferredWriter(w http.ResponseWriter) *DeferredWriter {
-	return &DeferredWriter{
+// base ResponseWriter.  It re-injects the base writer
+// so that in effect, there is only one writer present.
+func NewDeferredWriter(w http.ResponseWriter) (*DeferredWriter, http.ResponseWriter) {
+	dw := &DeferredWriter{
 		base:        w,
 		header:      w.Header().Clone(),
 		resetHeader: w.Header().Clone(),
 		buffer:      make([]byte, 0, 4*1024),
 	}
+	return dw, dw
 }
 
 // Header is the same as http.ResponseWriter.Header
