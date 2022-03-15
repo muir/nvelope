@@ -240,7 +240,7 @@ func GenerateDecoder(
 	for _, opt := range genOpts {
 		opt(&options)
 	}
-	return nject.GenerateFromInjectionChain(func(before nject.Collection, after nject.Collection) (nject.Provider, error) {
+	return nject.GenerateFromInjectionChain("GenerateDecoder", func(before nject.Collection, after nject.Collection) (nject.Provider, error) {
 		full := before.Append("after", after)
 		missingInputs, _ := full.DownFlows()
 		var providers []interface{}
