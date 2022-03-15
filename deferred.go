@@ -112,6 +112,7 @@ func (w *DeferredWriter) Flush() error {
 	if w.passthrough {
 		return errors.New("Attempt flush deferred writer that is not deferred")
 	}
+	w.passthrough = true
 	base := w.UnderlyingWriter()
 	if w.status != 0 {
 		base.WriteHeader(w.status)
