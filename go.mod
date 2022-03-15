@@ -6,7 +6,7 @@ require (
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
 	github.com/gorilla/mux v1.8.0
 	github.com/muir/nape v0.2.1
-	github.com/muir/nject v0.3.0
+	github.com/muir/nject v0.3.1
 	github.com/muir/reflectutils v0.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
