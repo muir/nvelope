@@ -55,6 +55,9 @@ type DecodeInputsGeneratorOpt func(*eigo)
 // decode functions (eg json.Unmarshal).  If a Content-Type header
 // is used in the requet, then the value of that header will be
 // used to pick a decoder.
+//
+// When using a decoder, the body must be provided as an nvelope.Body
+// parameter. Use nvelope.ReadBody to do that.
 func WithDecoder(contentType string, decoder Decoder) DecodeInputsGeneratorOpt {
 	return func(o *eigo) {
 		o.decoders[contentType] = decoder
