@@ -20,6 +20,8 @@ github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB7
 github.com/gregjones/httpcache v0.0.0-20170920190843-316c5e0ff04e/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
 github.com/hashicorp/hcl v0.0.0-20170914154624-68e816d1c783/go.mod h1:oZtUIOe8dh44I2q6ScRibXws4Ajl+d+nod3AaR9vL5w=
 github.com/inconshreveable/log15 v0.0.0-20170622235902-74a0988b5f80/go.mod h1:cOaXtrgN4ScfRrD9Bre7U1thNq5RtJ8ZoP4iXVGRj6o=
+github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
+github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/kr/pretty v0.2.0 h1:s5hAObm+yFO5uHYt5dYjxi2rXrsnmRpJx4OYvIWUaQs=
 github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
@@ -32,10 +34,13 @@ github.com/mitchellh/mapstructure v0.0.0-20170523030023-d0303fe80992/go.mod h1:F
 github.com/muir/nape v0.2.0/go.mod h1:VjvP6gR5PzQ3yyOPjyGlFOxDFucMVhBkaJGT6c0CvsU=
 github.com/muir/nape v0.2.1 h1:Yce3vLOW4umOMwFzvqYHfIKa3Ltx0Y6qiGcE8yFPkJA=
 github.com/muir/nape v0.2.1/go.mod h1:FE26YLNvUZ7DQJVW34+ypho9cGTn0NccvXjMaDo1nTw=
+github.com/muir/nchi v0.0.1 h1:2rg72QxXywSih++Ft+M83fWXOAqR0Vl/RdjcguiJHLY=
+github.com/muir/nchi v0.0.1/go.mod h1:v6gUg0F1wD7qpZcp6I2/5Y4IUA9qzlKgCqehdEuOPJg=
 github.com/muir/nject v0.2.0/go.mod h1:vFJkDQciI0UURYI3cSZLyBhYxL3gn+4FvJBY9cZSsaA=
 github.com/muir/nject v0.4.0 h1:g9IBW+6PHtz65GsKinJRweHXBQLaRUZgtbjIGnEACA0=
 github.com/muir/nject v0.4.0/go.mod h1:le4jeI0HP94VGIAGbdB4gLMzWENM/uHh8Iq3/Qv8wak=
 github.com/muir/nvelope v0.2.0/go.mod h1:raB9voDUnhMELiU2fZG7yHYdiRGKSh/FGtsjYWtdbpc=
+github.com/muir/nvelope v0.3.0/go.mod h1:XWPSm68reA4rxkuC/keqHbeFT9QJBorF2ttjF7flzyM=
 github.com/muir/reflectutils v0.4.0 h1:1VXbXaav7tR5BTYTHcGTdOAyxu3idCzM5FCtCpgm2u4=
 github.com/muir/reflectutils v0.4.0/go.mod h1:hyMWDtoeNsc1FTq9qlXsbwDzbwp3A3M8zbRNKDzvSmc=
 github.com/pelletier/go-toml v1.0.1-0.20170904195809-1d6b12b7cb29/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=

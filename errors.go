@@ -3,7 +3,29 @@ package nvelope
 import (
 	"encoding"
 	"errors"
+	"net/http"
+
+	"github.com/muir/nject"
 )
+
+// MinimalErrorHandler provides a way to catch returned error values from
+// the many functions that return them if MakeResponseEncoder is not used.
+// http.ResponseWriter is used instead of a DeferredWriter.  That means that
+// MinimalErrorHandler cannot know if a response has already been made.  The
+// assumption is that if the returned error is nil, a respons has been made
+// and if the returned error is not nil, then a response has not yet been
+// made and the MinimalErrorHandler should make one.  GetReturnCode is used
+// to determine the return code.
+var MinimalErrorHandler = nject.Provide("minimal-error-handler", minimalErrorHandler)
+
+func minimalErrorHandler(inner func() error, w http.ResponseWriter) {
+	err := inner()
+	if err == nil {
+		return
+	}
+	w.WriteHeader(GetReturnCode(err))
+	_, _ = w.Write([]byte(err.Error()))
+}
 
 // ReturnCode associates an HTTP return code with a error.
 // if err is nil, then nil is returned.
