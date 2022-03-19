@@ -199,6 +199,8 @@ var deepObjectRE = regexp.MustCompile(`^([^\[]+)\[([^\]]+)\]$`) // id[name]
 //	form=true			# cookies only
 //	content=application/json	# specifies that the value should be decoded with JSON
 //	content=application/xml		# specifies that the value should be decoded with XML
+//	content=application/yaml	# specifies that the value should be decoded with YAML
+//	content=text/yaml		# specifies that the value should be decoded with YAML
 //	deepObject=false		# default
 //	deepObject=true			# required for query object
 //
@@ -225,14 +227,17 @@ var deepObjectRE = regexp.MustCompile(`^([^\[]+)\[([^\]]+)\]$`) // id[name]
 //
 // "deepObject=true" is only supported for maps and structs and only for query parameters.
 //
-// Generally setting "content" to something should be paired with "explode=false"
+// Use "explode=true" combined with setting a "content" when you have a map to a struct or
+// a slice of structs and each value will be encoded in JSON/XML independently. If the entire
+// map is encoded, then use "explode=false".
 //
 // GenerateDecoder uses https://pkg.go.dev/github.com/muir/reflectutils#MakeStringSetter to
 // unpack strings into struct fields.  That provides support for time.Duration and anything
 // that implements encoding.TextUnmarshaler or flag.Value.  Additional custom decoders can
 // be registered with https://pkg.go.dev/github.com/muir/reflectutils#RegisterStringSetter .
 //
-// There are a couple of example decoders defined in https://github.com/muir/nape .
+// There are a couple of example decoders defined in https://github.com/muir/nape and also
+// https://github.com/muir/nchi .
 func GenerateDecoder(
 	genOpts ...DecodeInputsGeneratorOpt,
 ) interface{} {
@@ -917,7 +922,7 @@ func contentUnpacker(
 			decoder = json.Unmarshal
 		case "application/xml":
 			decoder = xml.Unmarshal
-		case "application/yaml":
+		case "application/yaml", "text/yaml":
 			decoder = yaml.Unmarshal
 		default:
 			return unpack{}, errors.Errorf("No decoder provided for content type '%s'", tags.content)
@@ -959,12 +964,12 @@ func contentUnpacker(
 					valueString = kv[1]
 				}
 				keyPointer := reflect.New(fieldType.Key())
-				err := keyUnpack.single(from, keyPointer, keyString)
+				err := keyUnpack.single(from, keyPointer.Elem(), keyString)
 				if err != nil {
 					return err
 				}
 				valuePointer := reflect.New(fieldType.Elem())
-				err = valueUnpack.single(from, valuePointer, valueString)
+				err = valueUnpack.single(from, valuePointer.Elem(), valueString)
 				if err != nil {
 					return err
 				}

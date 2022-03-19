@@ -188,3 +188,41 @@ func TestDecodeQueryPathParameters(t *testing.T) {
 	})
 	assert.Equal(t, `200->{"A":"foobar","B":38,"C":"~john~"}`, do("/x/foobar/38/john"))
 }
+
+func TestDecodeQueryExplode(t *testing.T) {
+	do := captureOutput("/x", func(s struct {
+		M map[string]int `json:",omitempty" nvelope:"query,name=m,explode=true"`
+		S []string       `json:",omitempty" nvelope:"query,name=s,explode=true"`
+	}) (nvelope.Response, error) {
+		return s, nil
+	})
+	assert.Equal(t, `200->{"M":{"a":7,"b":8}}`, do("/x?m=a%3D7&m=b%3D8"))
+	assert.Equal(t, `200->{"S":["x","y","z"]}`, do("/x?s=x&s=y&s=z"))
+}
+
+type thing struct {
+	I int     `json:"I,omitempty"`
+	F float64 `json:"F,omitempty"`
+}
+
+func e(s string) string { return url.QueryEscape(s) }
+
+func TestDecodeQueryContentExplode(t *testing.T) {
+	do := captureOutput("/x", func(s struct {
+		MEA map[int]thing `json:",omitempty" nvelope:"query,name=mea,explode=true,content=application/json"`
+		SEA []thing       `json:",omitempty" nvelope:"query,name=sea,explode=true,content=application/json"`
+		ME  map[int]int   `json:",omitempty" nvelope:"query,name=me,explode=true"`
+		SE  []int         `json:",omitempty" nvelope:"query,name=se,explode=true"`
+		MA  map[int]thing `json:",omitempty" nvelope:"query,name=ma,explode=false,content=application/json"`
+		SA  []thing       `json:",omitempty" nvelope:"query,name=sa,explode=false,content=application/json"`
+	}) (nvelope.Response, error) {
+		return s, nil
+	})
+
+	assert.Equal(t, `200->{"MEA":{"3":{"I":8},"4":{"F":3.9}}}`, do("/x?mea="+e(`3={"I":8}`)+"&mea="+e(`4={"F":3.9}`)))
+	assert.Equal(t, `200->{"SEA":[{"I":8},{"F":3.9}]}`, do("/x?sea="+e(`{"I":8}`)+"&sea="+e(`{"F":3.9}`)))
+	assert.Equal(t, `200->{"ME":{"3":4,"9":0}}`, do("/x?me=3%3D4&me=9%3D0"))
+	assert.Equal(t, `200->{"SE":[3,9,2]}`, do("/x?se=3&se=9&se=2"))
+	assert.Equal(t, `200->{"SA":[{"I":8},{"F":3.9}]}`, do("/x?sa="+e(`[{"I":8},{"F":3.9}]`)))
+	assert.Equal(t, `200->{"MA":{"3":{"I":8},"4":{"F":3.9}}}`, do("/x?ma="+e(`{"3":{"I":8},"4":{"F":3.9}}`)))
+}
