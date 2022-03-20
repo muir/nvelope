@@ -1,6 +1,7 @@
 package nvelope_test
 
 import (
+	"encoding/xml"
 	"fmt"
 	"net/url"
 	"testing"
@@ -8,6 +9,8 @@ import (
 	"github.com/muir/nvelope"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 type Complex128 complex128
@@ -225,4 +228,27 @@ func TestDecodeQueryContentExplode(t *testing.T) {
 	assert.Equal(t, `200->{"SE":[3,9,2]}`, do("/x?se=3&se=9&se=2"))
 	assert.Equal(t, `200->{"SA":[{"I":8},{"F":3.9}]}`, do("/x?sa="+e(`[{"I":8},{"F":3.9}]`)))
 	assert.Equal(t, `200->{"MA":{"3":{"I":8},"4":{"F":3.9}}}`, do("/x?ma="+e(`{"3":{"I":8},"4":{"F":3.9}}`)))
+}
+
+func TestDecodeQueryOtherEncoders(t *testing.T) {
+	do := captureOutput("/x", func(s struct {
+		XML  *thing `json:",omitempty" nvelope:"query,name=xml,explode=false,content=application/xml"`
+		YAML *thing `json:",omitempty" nvelope:"query,name=yaml,explode=false,content=text/yaml"`
+	}) (nvelope.Response, error) {
+		return s, nil
+	})
+
+	xmle := func(i interface{}) string {
+		enc, err := xml.Marshal(i)
+		require.NoError(t, err, "marshal xml")
+		return e(string(enc))
+	}
+	yamle := func(i interface{}) string {
+		enc, err := yaml.Marshal(i)
+		require.NoError(t, err, "marshal yaml")
+		return e(string(enc))
+	}
+
+	assert.Equal(t, `200->{"XML":{"I":3,"F":6.2}}`, do("/x?xml="+xmle(thing{I: 3, F: 6.2})))
+	assert.Equal(t, `200->{"YAML":{"I":8,"F":2.2}}`, do("/x?yaml="+yamle(thing{I: 8, F: 2.2})))
 }
