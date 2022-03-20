@@ -18,9 +18,7 @@ var InjectWriter = nject.Provide("writer", NewDeferredWriter)
 // already been done
 var AutoFlushWriter = nject.Provide("autoflush-writer", func(inner func(), w *DeferredWriter) {
 	inner()
-	if !w.Done() {
-		_ = w.Flush()
-	}
+	_ = w.FlushIfNotFlushed()
 })
 
 // Response is an empty interface that is the expected return value
