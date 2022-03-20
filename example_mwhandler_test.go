@@ -77,7 +77,7 @@ func ServiceWithMiddlewareHandler(router *mux.Router) {
 // nape, and nvelope.
 func ExampleServiceWithMiddlewareHandler() {
 	r := mux.NewRouter()
-	ServiceWithMiddleware(r)
+	ServiceWithMiddlewareHandler(r)
 	ts := httptest.NewServer(r)
 	client := ts.Client()
 	doGet := func(url string, authHeader string) {
