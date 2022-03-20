@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/muir/nject"
@@ -278,16 +277,16 @@ func GenerateDecoder(
 			deepObjectFillers := make(map[string]func(reflect.Value, map[string][]string) error)
 			var returnError error
 			reflectutils.WalkStructElements(nonPointer, func(field reflect.StructField) bool {
-				tag, ok := field.Tag.Lookup(options.tag)
+				tag, ok := reflectutils.LookupTag(field.Tag, options.tag)
 				if !ok {
 					return true
 				}
-				base, tags, err := parseTag(tag, true)
+				tags, err := parseTag(tag)
 				if err != nil {
 					returnError = err
 					return false
 				}
-				if base == "model" {
+				if tags.Base == "model" {
 					bodyFillers = append(bodyFillers,
 						func(model reflect.Value, body []byte, r *http.Request) error {
 							f := model.FieldByIndex(field.Index)
@@ -307,15 +306,15 @@ func GenerateDecoder(
 				}
 
 				name := field.Name // not used by model, but used by the rest
-				if tags.name != "" {
-					name = tags.name
+				if tags.Name != "" {
+					name = tags.Name
 				}
-				unpacker, err := getUnpacker(field.Type, field.Name, name, base, tags, options)
+				unpacker, err := getUnpacker(field.Type, field.Name, name, tags.Base, tags, options)
 				if err != nil {
 					returnError = err
 					return false
 				}
-				switch base {
+				switch tags.Base {
 				case "path":
 					varsFillers = append(varsFillers, func(model reflect.Value, routeVarLookup RouteVarLookup) error {
 						f := model.FieldByIndex(field.Index)
@@ -524,37 +523,35 @@ func generateStructUnpacker(
 	targets := make(map[string]fillTarget)
 	var anyErr error
 	reflectutils.WalkStructElements(fieldType, func(field reflect.StructField) bool {
-		tag, _ := field.Tag.Lookup(tagName)
-		// nolint:govet
-		name, tags, err := parseTag(tag, false)
+		tags, err := parseTag(reflectutils.GetTag(field.Tag, tagName))
 		if err != nil {
 			anyErr = errors.Wrap(err, field.Name)
 			return false
 		}
-		switch name {
+		switch tags.Base {
 		case "-":
 			return true
 		case "":
-			name = field.Name
+			tags.Base = field.Name
 		}
-		if _, ok := targets[name]; ok {
+		if _, ok := targets[tags.Base]; ok {
 			anyErr = errors.Errorf("Only one field can be filled with the same name.  '%s' is duplicated.  One example is %s",
-				name, field.Name)
+				tags.Base, field.Name)
 			return false
 		}
-		if !outerTags.deepObject {
-			tags.explode = false
+		if !outerTags.DeepObject {
+			tags.Explode = false
 		}
-		if tags.deepObject {
-			anyErr = errors.Errorf("deepObject=true is not allowed on fields inside a struct.  Used on %s", name)
+		if tags.DeepObject {
+			anyErr = errors.Errorf("deepObject=true is not allowed on fields inside a struct.  Used on %s", tags.Base)
 			return false
 		}
-		unpacker, err := getUnpacker(field.Type, field.Name, name, base, tags, options)
+		unpacker, err := getUnpacker(field.Type, field.Name, tags.Base, base, tags, options)
 		if err != nil {
 			anyErr = errors.Wrap(err, field.Name)
 			return false
 		}
-		targets[name] = fillTarget{
+		targets[tags.Base] = fillTarget{
 			field:  field,
 			unpack: unpacker,
 		}
@@ -695,7 +692,7 @@ func getUnpacker(
 	tags tags,
 	options eigo,
 ) (unpack, error) {
-	if tags.content != "" {
+	if tags.Content != "" {
 		return contentUnpacker(fieldType, fieldName, name, base, tags, options)
 	}
 	if fieldType.AssignableTo(textUnmarshallerType) {
@@ -764,14 +761,14 @@ func getUnpacker(
 	case reflect.Slice, reflect.Array:
 		switch base {
 		case "cookie", "path":
-			if tags.delimiter != "," {
+			if tags.Delimiter != "," {
 				return unpack{}, errors.New("delimiter setting is only allowed for 'query' parameters")
 			}
-			if tags.explode {
+			if tags.Explode {
 				return unpack{}, errors.New("explode=true not supported for cookies & path parameters")
 			}
 		}
-		if tags.deepObject {
+		if tags.DeepObject {
 			return unpack{}, errors.New("deepObject=true not supported for slices")
 		}
 
@@ -785,7 +782,7 @@ func getUnpacker(
 		}
 		switch base {
 		case "query", "header":
-			if tags.explode {
+			if tags.Explode {
 				return unpack{
 					multi: func(from string, target reflect.Value, values []string) error {
 						return unslicer(from, target, singleUnpack.single, values)
@@ -794,7 +791,7 @@ func getUnpacker(
 			}
 		}
 		return unpack{single: func(from string, target reflect.Value, value string) error {
-			values := strings.Split(value, tags.delimiter)
+			values := strings.Split(value, tags.Delimiter)
 			return unslicer(from, target, singleUnpack.single, values)
 		}}, nil
 
@@ -803,7 +800,7 @@ func getUnpacker(
 		if err != nil {
 			return unpack{}, err
 		}
-		if tags.deepObject {
+		if tags.DeepObject {
 			if base != "query" {
 				return unpack{}, errors.Errorf("deepObject=true not supported for %s", base)
 			}
@@ -811,7 +808,7 @@ func getUnpacker(
 		}
 		switch base {
 		case "query", "header":
-			if tags.explode {
+			if tags.Explode {
 				return unpack{
 					multi: func(from string, target reflect.Value, values []string) error {
 						return structUnpacker.multi(from, target, resplitOnEquals(values))
@@ -820,14 +817,14 @@ func getUnpacker(
 			}
 		}
 		return unpack{single: func(from string, target reflect.Value, value string) error {
-			values := strings.Split(value, tags.delimiter)
+			values := strings.Split(value, tags.Delimiter)
 			return structUnpacker.multi(from, target, values)
 		}}, nil
 
 	case reflect.Map:
 		switch base {
 		case "cookie", "path":
-			if tags.delimiter != "," {
+			if tags.Delimiter != "," {
 				return unpack{}, errors.New("delimiter setting is only allowed for 'query' parameters")
 			}
 		}
@@ -836,7 +833,7 @@ func getUnpacker(
 			return unpack{}, err
 		}
 		etags := tags
-		if tags.deepObject {
+		if tags.DeepObject {
 			etags = etags.WithoutDeepObject()
 		} else {
 			etags = etags.WithoutExplode()
@@ -845,7 +842,7 @@ func getUnpacker(
 		if err != nil {
 			return unpack{}, err
 		}
-		if tags.deepObject {
+		if tags.DeepObject {
 			if base != "query" {
 				return unpack{}, errors.Errorf("deepObject=true not supported for %s", base)
 			}
@@ -878,7 +875,7 @@ func getUnpacker(
 		}
 		switch base {
 		case "query", "header":
-			if tags.explode {
+			if tags.Explode {
 				return unpack{
 					multi: func(from string, target reflect.Value, values []string) error {
 						return mapUnpack(from, target, keyUnpack.single, elementUnpack.single, resplitOnEquals(values))
@@ -887,7 +884,7 @@ func getUnpacker(
 			}
 		}
 		return unpack{single: func(from string, target reflect.Value, value string) error {
-			values := strings.Split(value, tags.delimiter)
+			values := strings.Split(value, tags.Delimiter)
 			return mapUnpack(from, target, keyUnpack.single, elementUnpack.single, values)
 		}}, nil
 
@@ -913,11 +910,11 @@ func contentUnpacker(
 	tags tags,
 	options eigo,
 ) (unpack, error) {
-	decoder, ok := options.decoders[tags.content]
+	decoder, ok := options.decoders[tags.Content]
 	if !ok {
-		// tags.content can provide access to decoders beyond what
+		// tags.Content can provide access to decoders beyond what
 		// is specified for GenerateDecoder
-		switch tags.content {
+		switch tags.Content {
 		case "application/json":
 			decoder = json.Unmarshal
 		case "application/xml":
@@ -925,11 +922,11 @@ func contentUnpacker(
 		case "application/yaml", "text/yaml":
 			decoder = yaml.Unmarshal
 		default:
-			return unpack{}, errors.Errorf("No decoder provided for content type '%s'", tags.content)
+			return unpack{}, errors.Errorf("No decoder provided for content type '%s'", tags.Content)
 		}
 	}
 	kind := fieldType.Kind()
-	if tags.explode &&
+	if tags.Explode &&
 		(base == "query" || base == "header") &&
 		(kind == reflect.Map || kind == reflect.Slice) {
 		valueUnpack, err := getUnpacker(fieldType.Elem(), fieldName, name, base, tags.WithoutExplode(), options)
@@ -1003,72 +1000,36 @@ var delimiters = map[string]string{
 }
 
 type tags struct {
-	name          string
-	explode       bool
-	delimiter     string
-	allowReserved bool
-	content       string
-	deepObject    bool
+	Base          string `pt:"0"`
+	Name          string `pt:"name"`
+	ExplodeP      *bool  `pt:"explode"`
+	Explode       bool
+	Delimiter     string `pt:"delimiter"`
+	AllowReserved bool   `pt:"allowReserved"`
+	Form          bool   `pt:"form"`
+	Content       string `pt:"content"`
+	DeepObject    bool   `pt:"deepObject"`
 }
 
-func (tags tags) WithoutExplode() tags    { tags.explode = false; return tags }
-func (tags tags) WithoutContent() tags    { tags.content = ""; return tags }
-func (tags tags) WithoutDeepObject() tags { tags.deepObject = false; return tags }
+func (tags tags) WithoutExplode() tags    { tags.Explode = false; return tags }
+func (tags tags) WithoutContent() tags    { tags.Content = ""; return tags }
+func (tags tags) WithoutDeepObject() tags { tags.DeepObject = false; return tags }
 
-func parseTag(s string, validate bool) (string, tags, error) {
-	a := strings.Split(s, ",")
-	// nolint:govet
-	var tags tags
-	if len(a) == 0 {
-		return "", tags, errors.New("must specify the source of the data ('path', 'query', etc)")
+func parseTag(tag reflectutils.Tag) (tags tags, err error) {
+	tags.Delimiter = ","
+	err = tag.Fill(&tags)
+	if replace, ok := delimiters[tags.Delimiter]; ok {
+		tags.Delimiter = replace
 	}
-	tags.delimiter = ","
-	if validate {
-		switch a[0] {
-		case "path":
-		case "query":
-			tags.explode = true
-		case "header":
-			tags.explode = true
-		case "cookie":
-		case "model":
-		default:
-			return "", tags, errors.Errorf("'%s' is not a valid source of the data use ('model', 'path', 'query', etc)", a[0])
+	if tags.ExplodeP != nil {
+		tags.Explode = *tags.ExplodeP
+	} else {
+		switch tags.Base {
+		case "query", "header":
+			tags.Explode = true
 		}
 	}
-	for _, v := range a[1:] {
-		kvs := strings.SplitN(v, "=", 2)
-		k := kvs[0]
-		var val string
-		if len(kvs) == 2 {
-			val = kvs[1]
-		}
-		var err error
-		switch k {
-		case "name":
-			tags.name = val
-		case "explode":
-			tags.explode, err = strconv.ParseBool(val)
-		case "delimiter":
-			var ok bool
-			tags.delimiter, ok = delimiters[val]
-			if !ok {
-				err = errors.Errorf("Invalid delimiter value (must be 'comma', 'space', or 'pipe')")
-			}
-		case "allowReserved":
-			tags.allowReserved, err = strconv.ParseBool(val)
-		case "content":
-			tags.content = val
-		case "deepObject":
-			tags.deepObject = true
-		default:
-			return "", tags, errors.Errorf("tag %s is not supported", k)
-		}
-		if err != nil {
-			return "", tags, errors.Wrap(err, k)
-		}
-	}
-	return a[0], tags, nil
+	return tags, err
 }
 
 func resplitOnEquals(values []string) []string {
