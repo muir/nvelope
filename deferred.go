@@ -17,6 +17,7 @@ type DeferredWriter struct {
 	buffer      []byte
 	status      int
 	resetHeader http.Header
+	flushed     bool
 }
 
 // NewDeferredWriter returns a DeferredWriter based on a
@@ -85,7 +86,13 @@ func (w *DeferredWriter) PreserveHeader() {
 // switches to passthrough mode: all future calls to Write(),
 // Header(), etc are passed through to the http.ResponseWriter that
 // was used to initialize the DeferredWrited.
+//
+// Any writes made before the call to UnderlyingWriter are discarded.
+// Call Flush() first to preserve writes.
 func (w *DeferredWriter) UnderlyingWriter() http.ResponseWriter {
+	if w.passthrough {
+		return w.base
+	}
 	w.passthrough = true
 	h := w.base.Header()
 	for k := range h {
@@ -112,7 +119,7 @@ func (w *DeferredWriter) Flush() error {
 	if w.passthrough {
 		return errors.New("Attempt flush deferred writer that is not deferred")
 	}
-	w.passthrough = true
+	w.flushed = true
 	base := w.UnderlyingWriter()
 	if w.status != 0 {
 		base.WriteHeader(w.status)
@@ -146,4 +153,15 @@ func (w *DeferredWriter) FlushIfNotFlushed() error {
 // Done returns true if the DeferredWriter is in passthrough mode.
 func (w *DeferredWriter) Done() bool {
 	return w.passthrough
+}
+
+// Body returns the internal buffer used by DeferredWriter.  Do not modify it.
+// It also returns the status code (if set).
+// If UnderlyingWriter() has been called, then Body() will return an error since
+// the underlying buffer does not represent what has been written.
+func (w *DeferredWriter) Body() ([]byte, int, error) {
+	if w.passthrough && !w.flushed {
+		return nil, 0, errors.New("unable to provide body because DeferredWriter is operating in passthrough mode")
+	}
+	return w.buffer, w.status, nil
 }
