@@ -43,7 +43,11 @@ func (w *testResponseWriter) Write(b []byte) (int, error) {
 func TestUnderlyingWriter(t *testing.T) {
 	tw := &testResponseWriter{header: make(http.Header)}
 	w, _ := nvelope.NewDeferredWriter(tw)
+	_, _, err := w.Body()
+	assert.NoError(t, err, "body before Underlying")
 	assert.Equal(t, tw, w.UnderlyingWriter())
+	_, _, err = w.Body()
+	assert.Error(t, err, "body after Underlying")
 }
 
 func TestFlush(t *testing.T) {
@@ -59,6 +63,10 @@ func TestFlush(t *testing.T) {
 	assert.Equal(t, "", tw.Header().Get("c"), "original header untouched with existing key")
 	assert.Equal(t, "d", w.Header().Get("c"), "new header override works though")
 	w.WriteHeader(303)
+	body, code, err := w.Body()
+	assert.NoError(t, err, "body")
+	assert.Equal(t, 303, code, "body code")
+	assert.Equal(t, []byte("howdy"), body, code, "body")
 	assert.Equal(t, 0, tw.code, "code not written before flush")
 	assert.False(t, w.Done(), "done before flush")
 	require.NoError(t, w.Flush(), "flush")
@@ -67,6 +75,10 @@ func TestFlush(t *testing.T) {
 	assert.Equal(t, 303, tw.code, "code written after flush")
 	assert.Equal(t, "d", tw.Header().Get("c"), "new header written - c")
 	assert.Equal(t, "d", tw.Header().Get("a"), "new header written - a")
+	body, code, err = w.Body()
+	assert.NoError(t, err, "body")
+	assert.Equal(t, 303, code, "body code")
+	assert.Equal(t, []byte("howdy"), body, code, "body")
 }
 
 func TestReset(t *testing.T) {
