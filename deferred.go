@@ -99,8 +99,7 @@ func (w *DeferredWriter) UnderlyingWriter() http.ResponseWriter {
 		if v, ok := w.header[k]; ok {
 			h[k] = v
 		} else {
-			h.Del(k)
-			// delete(h, k)
+			delete(h, k)
 		}
 	}
 	for k, v := range w.header {
