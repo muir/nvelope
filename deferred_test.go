@@ -42,12 +42,24 @@ func (w *testResponseWriter) Write(b []byte) (int, error) {
 
 func TestUnderlyingWriter(t *testing.T) {
 	tw := &testResponseWriter{header: make(http.Header)}
+	tw.header.Set("X", "Y")
 	w, _ := nvelope.NewDeferredWriter(tw)
+	tw.header.Set("Foo", "bar")
+	tw.header.Set("A", "B")
+	w.Header().Set("Baz", "bap")
+	w.Header().Set("A", "C")
+	_, _ = w.Write([]byte("howdy"))
 	_, _, err := w.Body()
 	assert.NoError(t, err, "body before Underlying")
 	assert.Equal(t, tw, w.UnderlyingWriter())
 	_, _, err = w.Body()
 	assert.Error(t, err, "body after Underlying")
+	assert.Equal(t, tw, w.UnderlyingWriter())
+	assert.Equal(t, []byte(nil), tw.buffer, "underlying buffer after two calls")
+	assert.Empty(t, tw.header["Foo"], "Foo")
+	assert.Equal(t, tw.header.Get("Baz"), "bap", "Baz")
+	assert.Equal(t, tw.header.Get("A"), "C", "A")
+	assert.Equal(t, tw.header.Get("X"), "Y", "X")
 }
 
 func TestFlush(t *testing.T) {

@@ -86,6 +86,9 @@ func (w *DeferredWriter) PreserveHeader() {
 // switches to passthrough mode: all future calls to Write(),
 // Header(), etc are passed through to the http.ResponseWriter that
 // was used to initialize the DeferredWrited.
+//
+// Any writes made before the call to UnderlyingWriter are discarded.
+// Call Flush() first to preserve writes.
 func (w *DeferredWriter) UnderlyingWriter() http.ResponseWriter {
 	if w.passthrough {
 		return w.base
@@ -96,7 +99,8 @@ func (w *DeferredWriter) UnderlyingWriter() http.ResponseWriter {
 		if v, ok := w.header[k]; ok {
 			h[k] = v
 		} else {
-			delete(h, k)
+			h.Del(k)
+			// delete(h, k)
 		}
 	}
 	for k, v := range w.header {
