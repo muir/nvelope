@@ -38,13 +38,13 @@ github.com/muir/nape v0.2.2/go.mod h1:HElvKqBZGYL+/LEBEr+HuKati7YCYABuuUkdzPK2TT
 github.com/muir/nchi v0.0.1/go.mod h1:v6gUg0F1wD7qpZcp6I2/5Y4IUA9qzlKgCqehdEuOPJg=
 github.com/muir/nchi v0.0.2/go.mod h1:lkfo2+b2I4mny/PxSHJ87bKs+y1e9LAChg6f9lXOPGI=
 github.com/muir/nchi v0.0.3/go.mod h1:xs3OCnEifM3cNqzlztC1yHmLRhRWP6T+QOJbBoElCZs=
-github.com/muir/nchi v0.1.0 h1:n84h5Klb98SVNPhZhiPahLDzmgJXIu5IZUHP4yjY+uA=
-github.com/muir/nchi v0.1.0/go.mod h1:w0GAYuBXkRQoe0AUE+YotcWWAHea4rK3nXzl6by2qbs=
+github.com/muir/nchi v0.1.1 h1:guIxykpd7tWKuiFVyM9Hp0d/80MY4UmW6Ses/Yhmw6c=
+github.com/muir/nchi v0.1.1/go.mod h1:QUAa46hnOlWOyhz2upUowjNH1ttFWvVy46KDfj+XM+E=
 github.com/muir/nject v0.2.0/go.mod h1:vFJkDQciI0UURYI3cSZLyBhYxL3gn+4FvJBY9cZSsaA=
 github.com/muir/nject v0.4.0/go.mod h1:le4jeI0HP94VGIAGbdB4gLMzWENM/uHh8Iq3/Qv8wak=
 github.com/muir/nject v0.5.0/go.mod h1:kOa7nnqqV0tbg2tylEyZ0xtEl4tfC25wow7efbnba+M=
 github.com/muir/nject v1.3.2/go.mod h1:ab6sXXg40/HOuC0hBr7LUGKbnwYuTjfk+6cgtpr3hKY=
-github.com/muir/nject v1.4.1/go.mod h1:La+tn8IPEEc7ryUX6W05rcipZRGbPhAVz9rrzH2DbdI=
+github.com/muir/nject v1.5.0/go.mod h1:YkPfCewGnkFnr8z+hmIxHZXYPvdRQ+DlDfbq9M2bBng=
 github.com/muir/nject v1.6.0 h1:i6wh1aSE7/71yqxgeuBaG+ApivPOoHkg6yJ5b7ERMsc=
 github.com/muir/nject v1.6.0/go.mod h1:YkPfCewGnkFnr8z+hmIxHZXYPvdRQ+DlDfbq9M2bBng=
 github.com/muir/nvelope v0.2.0/go.mod h1:raB9voDUnhMELiU2fZG7yHYdiRGKSh/FGtsjYWtdbpc=
