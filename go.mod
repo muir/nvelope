@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/muir/nape v0.2.2
 	github.com/muir/nchi v0.1.1
 	github.com/muir/nject v1.8.0
