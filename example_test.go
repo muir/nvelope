@@ -3,7 +3,7 @@ package nvelope_test
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -91,7 +91,7 @@ func Example() {
 			fmt.Println("response error:", err)
 			return
 		}
-		b, err := ioutil.ReadAll(res.Body)
+		b, err := io.ReadAll(res.Body)
 		if err != nil {
 			fmt.Println("read error:", err)
 			return

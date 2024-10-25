@@ -5,8 +5,9 @@ import (
 	"encoding"
 	"encoding/json"
 	"encoding/xml"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"net/url"
 	"reflect"
 	"regexp"
 	"strings"
@@ -29,8 +30,8 @@ var ReadBody = nject.Provide("read-body", readBody)
 func readBody(r *http.Request) (Body, nject.TerminalError) {
 	// nolint:errcheck
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
-	r.Body = ioutil.NopCloser(bytes.NewReader(body))
+	body, err := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewReader(body))
 	return Body(body), err
 }
 
@@ -195,7 +196,9 @@ var deepObjectRE = regexp.MustCompile(`^([^\[]+)\[([^\]]+)\]$`) // id[name]
 //	allowReserved=false		# default
 //	allowReserved=true		# query parameters only
 //	form=false			# default
-//	form=true			# cookies only
+//	form=true			# query paramters only, may extract value from application/x-www-form-urlencoded POST content
+//	formOnly=false			# default
+//	formOnly=true			# query paramters only, extract value from application/x-www-form-urlencoded POST content only
 //	content=application/json	# specifies that the value should be decoded with JSON
 //	content=application/xml		# specifies that the value should be decoded with XML
 //	content=application/yaml	# specifies that the value should be decoded with YAML
@@ -216,7 +219,7 @@ var deepObjectRE = regexp.MustCompile(`^([^\[]+)\[([^\]]+)\]$`) // id[name]
 // optional.  Tag them with their name or with "-" if you do not want
 // them filled.
 //
-// 	type Fillme struct {
+//	type Fillme struct {
 //		Embedded struct {
 //			IntValue    int                     // will get filled by key "IntValue"
 //			FloatValue  float64 `nvelope:"-"`   // will not get filled
@@ -274,7 +277,9 @@ func GenerateDecoder(
 			var cookieFillers []func(model reflect.Value, r *http.Request) error
 			var bodyFillers []func(model reflect.Value, body []byte, r *http.Request) error
 			queryFillers := make(map[string]func(reflect.Value, []string) error)
+			queryFillersForm := make(map[string]func(reflect.Value, []string) error)
 			deepObjectFillers := make(map[string]func(reflect.Value, map[string][]string) error)
+			deepObjectFillersForm := make(map[string]func(reflect.Value, map[string][]string) error)
 			var returnError error
 			reflectutils.WalkStructElements(nonPointer, func(field reflect.StructField) bool {
 				tag, ok := reflectutils.LookupTag(field.Tag, options.tag)
@@ -376,6 +381,19 @@ func GenerateDecoder(
 								name, field.Name)
 						}
 					}
+					if tags.Form || tags.FormOnly {
+						if unpacker.deepObject != nil {
+							deepObjectFillersForm[name] = deepObjectFillers[name]
+							if tags.FormOnly {
+								delete(deepObjectFillers, name)
+							}
+						} else {
+							queryFillersForm[name] = queryFillers[name]
+							if tags.FormOnly {
+								delete(queryFillers, name)
+							}
+						}
+					}
 				case "cookie":
 					cookieFillers = append(cookieFillers, func(model reflect.Value, r *http.Request) error {
 						f := model.FieldByIndex(field.Index)
@@ -402,14 +420,16 @@ func GenerateDecoder(
 				len(headerFillers) == 0 &&
 				len(cookieFillers) == 0 &&
 				len(queryFillers) == 0 &&
+				len(queryFillersForm) == 0 &&
 				len(bodyFillers) == 0 &&
-				len(deepObjectFillers) == 0 {
+				len(deepObjectFillers) == 0 &&
+				len(deepObjectFillersForm) == 0 {
 				continue
 			}
 
 			outputs := []reflect.Type{returnType, terminalErrorType}
 			inputs := []reflect.Type{httpRequestType}
-			if len(bodyFillers) != 0 {
+			if len(bodyFillers) != 0 || len(queryFillersForm) != 0 || len(deepObjectFillersForm) != 0 {
 				inputs = append(inputs, bodyType)
 			}
 
@@ -461,27 +481,42 @@ func GenerateDecoder(
 					setError(hf(model, r.Header))
 				}
 				var deepObjects map[string]map[string][]string
-				for key, vals := range r.URL.Query() {
-					if qf, ok := queryFillers[key]; ok {
-						setError(qf(model, vals))
-						continue
-					}
-					if len(deepObjectFillers) != 0 {
-						if m := deepObjectRE.FindStringSubmatch(key); len(m) == 3 {
-							if _, ok := deepObjectFillers[m[1]]; ok {
-								if deepObjects == nil {
-									deepObjects = make(map[string]map[string][]string)
+				handleQueryParams := func(values url.Values, queryFillers map[string]func(reflect.Value, []string) error, deepObjectFillers map[string]func(reflect.Value, map[string][]string) error) {
+					for key, vals := range values {
+						if qf, ok := queryFillers[key]; ok {
+							setError(qf(model, vals))
+							continue
+						}
+						if len(deepObjectFillers) != 0 {
+							if m := deepObjectRE.FindStringSubmatch(key); len(m) == 3 {
+								if _, ok := deepObjectFillers[m[1]]; ok {
+									if deepObjects == nil {
+										deepObjects = make(map[string]map[string][]string)
+									}
+									if deepObjects[m[1]] == nil {
+										deepObjects[m[1]] = make(map[string][]string)
+									}
+									deepObjects[m[1]][m[2]] = vals
+									continue
 								}
-								if deepObjects[m[1]] == nil {
-									deepObjects[m[1]] = make(map[string][]string)
-								}
-								deepObjects[m[1]][m[2]] = vals
-								continue
 							}
 						}
+						if options.rejectUnknownQueryParameters {
+							setError(errors.Errorf("query parameter '%s' not supported", key))
+						}
 					}
-					if options.rejectUnknownQueryParameters {
-						setError(errors.Errorf("query parameter '%s' not supported", key))
+				}
+				handleQueryParams(r.URL.Query(), queryFillers, deepObjectFillers)
+				if len(queryFillersForm) != 0 || len(deepObjectFillersForm) != 0 {
+					body := []byte(in[1].Interface().(Body))
+					ct := r.Header.Get("Content-Type")
+					if ct == "application/x-www-form-urlencoded" {
+						values, err := url.ParseQuery(string(body))
+						if err != nil {
+							setError(errors.Wrap(err, "could not parse application/x-www-form-urlencoded data"))
+						} else {
+							handleQueryParams(values, queryFillersForm, deepObjectFillersForm)
+						}
 					}
 				}
 				for dofKey, values := range deepObjects {
@@ -707,7 +742,7 @@ func getUnpacker(
 			},
 		}, nil
 	}
-	if reflect.PtrTo(fieldType).AssignableTo(textUnmarshallerType) {
+	if reflect.PointerTo(fieldType).AssignableTo(textUnmarshallerType) {
 		return unpack{
 			createMe: true,
 			single: func(from string, target reflect.Value, value string) error {
@@ -1007,6 +1042,7 @@ type tags struct {
 	Delimiter     string `pt:"delimiter"`
 	AllowReserved bool   `pt:"allowReserved"`
 	Form          bool   `pt:"form"`
+	FormOnly      bool   `pt:"formOnly"`
 	Content       string `pt:"content"`
 	DeepObject    bool   `pt:"deepObject"`
 }

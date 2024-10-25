@@ -8,7 +8,9 @@ import (
 
 // MiddlewareBaseWriter acts as a translator.  In the Go world, there
 // are a bunch of packages that expect to use the wrapping
-// 	func(http.HandlerFunc) http.HandlerFunc
+//
+//	func(http.HandlerFunc) http.HandlerFunc
+//
 // pattern.  The func(http.HandlerFunc) http.HandlerFunc pattern is harder to
 // use and not as expressive as the patterns supported by
 // npoint and nvelope, but there may be code written
@@ -32,7 +34,9 @@ func MiddlewareBaseWriter(m ...func(http.HandlerFunc) http.HandlerFunc) nject.Pr
 
 // MiddlewareDeferredWriter acts as a translator.  In the Go world, there
 // are a bunch of packages that expect to use the wrapping
+//
 //	func(http.HandlerFunc) http.HandlerFunc
+//
 // pattern.  The func(http.HandlerFunc) http.HandlerFunc pattern is harder to
 // use and not as expressive as the patterns supported by
 // npoint and nvelope, but there may be code written
@@ -78,7 +82,9 @@ func combineMiddleware(m []func(http.HandlerFunc) http.HandlerFunc) func(http.Ha
 
 // MiddlewareHandlerBaseWriter acts as a translator.  In the Go world, there
 // are a bunch of packages that expect to use the wrapping
-// 	func(http.Handler) http.Handler
+//
+//	func(http.Handler) http.Handler
+//
 // pattern.  The func(http.HandlerFunc) http.HandlerFunc pattern is harder to
 // use and not as expressive as the patterns supported by
 // npoint and nvelope, but there may be code written
@@ -102,7 +108,9 @@ func MiddlewareHandlerBaseWriter(m ...func(http.Handler) http.Handler) nject.Pro
 
 // MiddlewareHandlerDeferredWriter acts as a translator.  In the Go world, there
 // are a bunch of packages that expect to use the wrapping
+//
 //	func(http.Handler) http.Handler
+//
 // pattern.  The func(http.Handler) http.Handler pattern is harder to
 // use and not as expressive as the patterns supported by
 // npoint and nvelope, but there may be code written

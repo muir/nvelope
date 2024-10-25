@@ -2,7 +2,7 @@ package nvelope_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -35,10 +35,9 @@ func captureOutput(path string, f interface{}) func(string, ...mod) string {
 
 type mod func(*http.Request, *http.Client, *httptest.Server)
 
-// nolint:unused,deadcode
 func body(s string) mod {
 	return func(r *http.Request, cl *http.Client, ts *httptest.Server) {
-		r.Body = ioutil.NopCloser(strings.NewReader(s))
+		r.Body = io.NopCloser(strings.NewReader(s))
 	}
 }
 
@@ -80,7 +79,7 @@ func captureOutputFunc(out func(...interface{}), path string, f interface{}) fun
 			panic("jar")
 		}
 		// nolint:noctx
-		req, err := http.NewRequest("POST", ts.URL+url, ioutil.NopCloser(strings.NewReader("")))
+		req, err := http.NewRequest("POST", ts.URL+url, io.NopCloser(strings.NewReader("")))
 		if err != nil {
 			panic("request")
 		}
@@ -94,7 +93,7 @@ func captureOutputFunc(out func(...interface{}), path string, f interface{}) fun
 			out("response error:", err)
 			return
 		}
-		b, err := ioutil.ReadAll(res.Body)
+		b, err := io.ReadAll(res.Body)
 		if err != nil {
 			out("read error:", err)
 			return
