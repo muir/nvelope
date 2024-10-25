@@ -1,7 +1,6 @@
 // Stuff
 
 /*
-
 Package nvelope provides injection handlers that make building
 HTTP endpoints simple.  In combination with npoint and nject it
 provides a API endpoint framework.
@@ -25,6 +24,5 @@ an error return to cause a specific HTTP error code to be sent.
 CatchPanic makes it easy to turn panics into error returns.
 
 The provided example puts it all together.
-
 */
 package nvelope

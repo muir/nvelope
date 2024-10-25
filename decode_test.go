@@ -56,7 +56,8 @@ func TestDecodeQuerySimpleParameters(t *testing.T) {
 		Complex64  *Complex64  `json:",omitempty" nvelope:"query,name=complex64"`
 		Complex128 *Complex128 `json:",omitempty" nvelope:"query,name=complex128"`
 		BoolP      *bool       `json:",omitempty" nvelope:"query,name=boolp"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 	assert.Equal(t, `200->{"Int":135}`, do("/x?int=135"))
@@ -111,7 +112,8 @@ func TestDecodeQueryComplexParameters(t *testing.T) {
 			Int16  int16  `json:",omitempty" nvelope:"eint16"`
 			String string `json:",omitempty"`
 		} `json:",omitempty" nvelope:"query,name=emb2,deepObject=true"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 	assert.Equal(t, `200->{"IntSlice":[1,7]}`, do("/x?intslice=1,7"))
@@ -141,7 +143,8 @@ func TestDecodeQueryJSONParameters(t *testing.T) {
 		S1   string   `json:",omitempty" nvelope:"query,name=s1,content=application/json"`
 		S2   *string  `json:",omitempty" nvelope:"query,name=s2,content=application/json"`
 		S3   **string `json:",omitempty" nvelope:"query,name=s3,content=application/json"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 	assert.Equal(t, `200->{"Foo":"~bar~"}`, do("/x?foo=bar"))
@@ -159,7 +162,8 @@ func TestDecodeQueryHeaderParameters(t *testing.T) {
 		A1 []string `json:",omitempty" nvelope:"header,name=A1"`
 		A2 []string `json:",omitempty" nvelope:"header,name=A2"`
 		A3 []string `json:",omitempty" nvelope:"header,explode=false,name=A3"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 	assert.Equal(t, `200->{"S":"yip"}`, do("/x", header("S", "yip")))
@@ -173,7 +177,8 @@ func TestDecodeQueryCookieParameters(t *testing.T) {
 		S  string   `json:",omitempty" nvelope:"cookie,name=S"`
 		A1 []string `json:",omitempty" nvelope:"cookie,name=A1"`
 		A3 []string `json:",omitempty" nvelope:"cookie,explode=false,name=A3"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 	assert.Equal(t, `200->{"S":"yip"}`, do("/x", cookie("S", "yip")))
@@ -186,7 +191,8 @@ func TestDecodeQueryPathParameters(t *testing.T) {
 		A string `json:",omitempty" nvelope:"path,name=a"`
 		B *int   `json:",omitempty" nvelope:"path,name=b"`
 		C Foo    `json:",omitempty" nvelope:"path,name=c"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 	assert.Equal(t, `200->{"A":"foobar","B":38,"C":"~john~"}`, do("/x/foobar/38/john"))
@@ -196,7 +202,8 @@ func TestDecodeQueryExplode(t *testing.T) {
 	do := captureOutput("/x", func(s struct {
 		M map[string]int `json:",omitempty" nvelope:"query,name=m,explode=true"`
 		S []string       `json:",omitempty" nvelope:"query,name=s,explode=true"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 	assert.Equal(t, `200->{"M":{"a":7,"b":8}}`, do("/x?m=a%3D7&m=b%3D8"))
@@ -218,7 +225,8 @@ func TestDecodeQueryContentExplode(t *testing.T) {
 		SE  []int         `json:",omitempty" nvelope:"query,name=se,explode=true"`
 		MA  map[int]thing `json:",omitempty" nvelope:"query,name=ma,explode=false,content=application/json"`
 		SA  []thing       `json:",omitempty" nvelope:"query,name=sa,explode=false,content=application/json"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 
@@ -234,7 +242,8 @@ func TestDecodeQueryOtherEncoders(t *testing.T) {
 	do := captureOutput("/x", func(s struct {
 		XML  *thing `json:",omitempty" nvelope:"query,name=xml,explode=false,content=application/xml"`
 		YAML *thing `json:",omitempty" nvelope:"query,name=yaml,explode=false,content=text/yaml"`
-	}) (nvelope.Response, error) {
+	},
+	) (nvelope.Response, error) {
 		return s, nil
 	})
 
@@ -251,4 +260,20 @@ func TestDecodeQueryOtherEncoders(t *testing.T) {
 
 	assert.Equal(t, `200->{"XML":{"I":3,"F":6.2}}`, do("/x?xml="+xmle(thing{I: 3, F: 6.2})))
 	assert.Equal(t, `200->{"YAML":{"I":8,"F":2.2}}`, do("/x?yaml="+yamle(thing{I: 8, F: 2.2})))
+}
+
+func TestDecodeFormValues(t *testing.T) {
+	do := captureOutput("/x", func(s struct {
+		A int `json:",omitempty" nvelope:"query,name=a"`
+		B int `json:",omitempty" nvelope:"query,form,name=b"`
+		C int `json:",omitempty" nvelope:"query,formOnly,name=c"`
+		D int `json:",omitempty" nvelope:"query,formOnly,name=d"`
+	},
+	) (nvelope.Response, error) {
+		return s, nil
+	})
+
+	assert.Equal(t, `200->{"A":7,"B":8,"C":9}`, do("/x?a=7&b=8", header("Content-type", "application/x-www-form-urlencoded"), body(`c=9`)))
+	assert.Equal(t, `200->{"A":7,"B":8}`, do("/x?a=7&b=8", header("Content-type", "application/json"), body(`{}`)))
+	assert.Equal(t, `200->{"A":7,"B":8,"C":9,"D":2}`, do("/x?a=7", header("Content-type", "application/x-www-form-urlencoded"), body(`c=9&b=8&d=2`)))
 }
