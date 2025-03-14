@@ -3,7 +3,7 @@ package nvelope
 import (
 	"net/http"
 
-	"github.com/muir/nject"
+	"github.com/muir/nject/v2"
 )
 
 // MiddlewareBaseWriter acts as a translator.  In the Go world, there

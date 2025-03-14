@@ -3,7 +3,7 @@ package nvelope
 import (
 	"strings"
 
-	"github.com/muir/nject"
+	"github.com/muir/nject/v2"
 )
 
 // DebugIncludeExclude is a tiny wrapper around nject.Debugging.
