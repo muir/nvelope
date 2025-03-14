@@ -21,8 +21,13 @@ type testResponseWriter struct {
 
 var _ http.ResponseWriter = &testResponseWriter{}
 
-func (w *testResponseWriter) Header() http.Header  { return w.header }
-func (w *testResponseWriter) WriteHeader(code int) { w.code = code }
+func (w *testResponseWriter) Header() http.Header { return w.header }
+func (w *testResponseWriter) WriteHeader(code int) {
+	if w.code == 0 {
+		w.code = code
+	}
+}
+
 func (w *testResponseWriter) Write(b []byte) (int, error) {
 	if w.simulateWriteError != nil {
 		// nolint:errorlint
@@ -37,6 +42,9 @@ func (w *testResponseWriter) Write(b []byte) (int, error) {
 		return 0, w.simulateWriteError
 	}
 	w.buffer = append(w.buffer, b...)
+	if w.code == 0 {
+		w.code = 200
+	}
 	return len(b), nil
 }
 
@@ -163,4 +171,12 @@ func TestPreserveHeader(t *testing.T) {
 	assert.Equal(t, "c", tw.Header().Get("b"), "new header written - b")
 	assert.Equal(t, "d", tw.Header().Get("c"), "new header written - c")
 	assert.Equal(t, "", tw.Header().Get("d"), "new header written - d")
+}
+
+func TestHTTPError(t *testing.T) {
+	tw := &testResponseWriter{header: make(http.Header)}
+	w, _ := nvelope.NewDeferredWriter(tw)
+	http.Error(w, "foo", 403)
+	w.Flush()
+	assert.Equal(t, 403, tw.code)
 }
