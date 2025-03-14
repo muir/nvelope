@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	"net/http"
 
-	"github.com/muir/nject"
+	"github.com/muir/nject/v2"
 
 	"github.com/golang/gddo/httputil"
 	"github.com/pkg/errors"

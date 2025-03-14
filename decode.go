@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/muir/nject"
+	"github.com/muir/nject/v2"
 	"github.com/muir/reflectutils"
 
 	"github.com/pkg/errors"

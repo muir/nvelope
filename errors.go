@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/muir/nject"
+	"github.com/muir/nject/v2"
 )
 
 // MinimalErrorHandler provides a way to catch returned error values from
