@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/muir/nape v0.3.0
 	github.com/muir/nchi v0.2.0
-	github.com/muir/nject/v2 v2.0.1
+	github.com/muir/nject/v2 v2.0.2
 	github.com/muir/reflectutils v0.11.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.10.0

@@ -168,6 +168,9 @@ func MakeResponseEncoder(
 			if w.Done() {
 				return
 			}
+			if body, returnCode, _ := w.Body(); returnCode != 0 || len(body) != 0 {
+				return
+			}
 			contentType := httputil.NegotiateContentType(r, o.contentOffers, o.defaultEncoder)
 			encoder := o.encoders[contentType]
 			w.Header().Set("Content-Type", contentType)
