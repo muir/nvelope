@@ -30,7 +30,7 @@ func AuthenticationMiddlewareHandler(next http.Handler) http.Handler {
 		fmt.Println("authentication start")
 		a := r.Header.Get("Authentication")
 		if a != "good" {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			_, _ = w.Write([]byte("Invalid authentication"))
 			fmt.Println("authentication end (failed)")
 			return
@@ -45,7 +45,7 @@ func AuthorizationMiddlewareHandler(next http.Handler) http.Handler {
 		fmt.Println("authorization start")
 		vars := mux.Vars(r)
 		if vars["with"] != "john" {
-			w.WriteHeader(403)
+			w.WriteHeader(http.StatusForbidden)
 			_, _ = w.Write([]byte("Invalid authorization"))
 			fmt.Println("authorization end (failed)")
 			return
@@ -97,7 +97,7 @@ func ExampleServiceWithMiddlewareHandler() {
 			fmt.Println("read error:", err)
 			return
 		}
-		res.Body.Close()
+		_ = res.Body.Close()
 		fmt.Println(res.StatusCode, "->"+string(b))
 	}
 	doGet("/a/path/john/37", "good")

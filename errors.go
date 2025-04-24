@@ -58,22 +58,22 @@ func (err returnCode) Error() string {
 
 // NotFound annotates an error has giving 404 HTTP return code
 func NotFound(err error) error {
-	return ReturnCode(err, 404)
+	return ReturnCode(err, http.StatusNotFound)
 }
 
 // BadRequest annotates an error has giving 400 HTTP return code
 func BadRequest(err error) error {
-	return ReturnCode(err, 400)
+	return ReturnCode(err, http.StatusBadRequest)
 }
 
 // Unauthorized annotates an error has giving 401 HTTP return code
 func Unauthorized(err error) error {
-	return ReturnCode(err, 401)
+	return ReturnCode(err, http.StatusUnauthorized)
 }
 
 // Forbidden annotates an error has giving 403 HTTP return code
 func Forbidden(err error) error {
-	return ReturnCode(err, 403)
+	return ReturnCode(err, http.StatusForbidden)
 }
 
 // GetReturnCode turns an error into an HTTP response code.
@@ -82,7 +82,7 @@ func GetReturnCode(err error) int {
 	if errors.As(err, &rc) {
 		return rc.code
 	}
-	return 500
+	return http.StatusInternalServerError
 }
 
 // CanModel represents errors that can transform themselves into a model

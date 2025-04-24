@@ -98,7 +98,7 @@ func captureOutputFunc(out func(...interface{}), path string, f interface{}) fun
 			out("read error:", err)
 			return
 		}
-		res.Body.Close()
+		_ = res.Body.Close()
 		out(res.StatusCode, "->"+string(b))
 	}
 }

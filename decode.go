@@ -529,7 +529,7 @@ func GenerateDecoder(
 				if err == nil {
 					ev = reflect.Zero(errorType)
 				} else {
-					ev = reflect.ValueOf(errors.Wrapf(ReturnCode(err, 400), "%s model", returnType))
+					ev = reflect.ValueOf(errors.Wrapf(ReturnCode(err, http.StatusBadRequest), "%s model", returnType))
 				}
 				if returnAddress {
 					return []reflect.Value{mp, ev}

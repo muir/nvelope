@@ -2,6 +2,7 @@ package nvelope_test
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/muir/nvelope"
@@ -11,9 +12,9 @@ import (
 )
 
 func TestErrors(t *testing.T) {
-	assert.Equal(t, 304, nvelope.GetReturnCode(nvelope.ReturnCode(fmt.Errorf("x"), 304)), "unwrapped")
-	assert.Equal(t, 303, nvelope.GetReturnCode(errors.Wrap(nvelope.ReturnCode(fmt.Errorf("x"), 303), "o")), "wrapped")
-	assert.Equal(t, 400, nvelope.GetReturnCode(nvelope.BadRequest(fmt.Errorf("x"))), "bad")
-	assert.Equal(t, 401, nvelope.GetReturnCode(nvelope.Unauthorized(fmt.Errorf("x"))), "unauth")
-	assert.Equal(t, 403, nvelope.GetReturnCode(nvelope.Forbidden(fmt.Errorf("x"))), "forbid")
+	assert.Equal(t, http.StatusNotModified, nvelope.GetReturnCode(nvelope.ReturnCode(fmt.Errorf("x"), http.StatusNotModified)), "unwrapped")
+	assert.Equal(t, http.StatusSeeOther, nvelope.GetReturnCode(errors.Wrap(nvelope.ReturnCode(fmt.Errorf("x"), http.StatusSeeOther), "o")), "wrapped")
+	assert.Equal(t, http.StatusBadRequest, nvelope.GetReturnCode(nvelope.BadRequest(fmt.Errorf("x"))), "bad")
+	assert.Equal(t, http.StatusUnauthorized, nvelope.GetReturnCode(nvelope.Unauthorized(fmt.Errorf("x"))), "unauth")
+	assert.Equal(t, http.StatusForbidden, nvelope.GetReturnCode(nvelope.Forbidden(fmt.Errorf("x"))), "forbid")
 }
