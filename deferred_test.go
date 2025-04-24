@@ -82,22 +82,22 @@ func TestFlush(t *testing.T) {
 	w.Header().Set("a", "d")
 	assert.Equal(t, "", tw.Header().Get("c"), "original header untouched with existing key")
 	assert.Equal(t, "d", w.Header().Get("c"), "new header override works though")
-	w.WriteHeader(303)
+	w.WriteHeader(http.StatusSeeOther)
 	body, code, err := w.Body()
 	assert.NoError(t, err, "body")
-	assert.Equal(t, 303, code, "body code")
+	assert.Equal(t, http.StatusSeeOther, code, "body code")
 	assert.Equal(t, []byte("howdy"), body, code, "body")
 	assert.Equal(t, 0, tw.code, "code not written before flush")
 	assert.False(t, w.Done(), "done before flush")
 	require.NoError(t, w.Flush(), "flush")
 	assert.True(t, w.Done(), "done after flush")
 	assert.Equal(t, "howdy", string(tw.buffer), "write after flush")
-	assert.Equal(t, 303, tw.code, "code written after flush")
+	assert.Equal(t, http.StatusSeeOther, tw.code, "code written after flush")
 	assert.Equal(t, "d", tw.Header().Get("c"), "new header written - c")
 	assert.Equal(t, "d", tw.Header().Get("a"), "new header written - a")
 	body, code, err = w.Body()
 	assert.NoError(t, err, "body")
-	assert.Equal(t, 303, code, "body code")
+	assert.Equal(t, http.StatusSeeOther, code, "body code")
 	assert.Equal(t, []byte("howdy"), body, code, "body")
 }
 
@@ -112,17 +112,17 @@ func TestReset(t *testing.T) {
 	w.Header().Set("d", "g")
 	w.WriteHeader(109)
 
-	_ = w.Reset()
+	require.NoError(t, w.Reset())
 
 	_, _ = w.Write([]byte("howdy"))
 	w.Header().Set("c", "d")
 	w.Header().Set("a", "d")
-	w.WriteHeader(303)
+	w.WriteHeader(http.StatusSeeOther)
 
 	require.NoError(t, w.Flush(), "flush")
 
 	assert.Equal(t, "howdy", string(tw.buffer), "write after flush")
-	assert.Equal(t, 303, tw.code, "code written after flush")
+	assert.Equal(t, http.StatusSeeOther, tw.code, "code written after flush")
 	assert.Equal(t, "d", tw.Header().Get("c"), "new header written - c")
 	assert.Equal(t, "d", tw.Header().Get("a"), "new header written - a")
 	assert.Equal(t, "", tw.Header().Get("d"), "new header not written - d")
@@ -160,12 +160,12 @@ func TestPreserveHeader(t *testing.T) {
 
 	w.PreserveHeader()
 
-	_ = w.Reset()
+	require.NoError(t, w.Reset())
 	w.Header().Set("a", "x")
 	w.Header().Set("d", "x")
 
-	_ = w.Reset()
-	w.Flush()
+	require.NoError(t, w.Reset())
+	require.NoError(t, w.Flush())
 
 	assert.Equal(t, "B", tw.Header().Get("a"), "new header written - a")
 	assert.Equal(t, "c", tw.Header().Get("b"), "new header written - b")
@@ -176,7 +176,7 @@ func TestPreserveHeader(t *testing.T) {
 func TestHTTPError(t *testing.T) {
 	tw := &testResponseWriter{header: make(http.Header)}
 	w, _ := nvelope.NewDeferredWriter(tw)
-	http.Error(w, "foo", 403)
-	w.Flush()
-	assert.Equal(t, 403, tw.code)
+	http.Error(w, "foo", http.StatusForbidden)
+	assert.NoError(t, w.Flush())
+	assert.Equal(t, http.StatusForbidden, tw.code)
 }

@@ -43,7 +43,7 @@ func ExampleMinimalErrorHandler() {
 			fmt.Println("read error:", err)
 			return
 		}
-		res.Body.Close()
+		_ = res.Body.Close()
 		fmt.Println(res.StatusCode, "->"+string(b))
 	}
 	doGet("/example/good", "good")

@@ -7,9 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/muir/nject/v2"
 	"github.com/muir/nvelope"
 
+	"github.com/muir/nject/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -65,22 +66,22 @@ func TestJSONEncoderJSONStruct(t *testing.T) {
 func TestJSONEncoderWriterDone(t *testing.T) {
 	body, resp := doTest(t,
 		func(w *nvelope.DeferredWriter) (nvelope.Response, error) {
-			http.Error(w, "never mind", 401)
-			w.Flush()
+			http.Error(w, "never mind", http.StatusUnauthorized)
+			assert.NoError(t, w.Flush())
 			return "foo", nil
 		})
 	require.Equal(t, "never mind\n", string(body))
-	require.Equal(t, 401, resp.StatusCode)
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
 func TestJSONEncoderWriterUsed(t *testing.T) {
 	body, resp := doTest(t,
 		func(w *nvelope.DeferredWriter) (nvelope.Response, error) {
-			http.Error(w, "never mind", 401)
+			http.Error(w, "never mind", http.StatusUnauthorized)
 			return "foo", nil
 		})
 	require.Equal(t, "never mind\n", string(body))
-	require.Equal(t, 401, resp.StatusCode)
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
 func TestJSONEncoderError(t *testing.T) {
