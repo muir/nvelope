@@ -1,6 +1,6 @@
 module github.com/muir/nvelope
 
-go 1.18
+go 1.23
 
 require (
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
