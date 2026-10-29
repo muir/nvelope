@@ -24,7 +24,7 @@ func (l *recordingLogger) Error(msg string, fields ...map[string]interface{}) {
 }
 
 func TestSetErrorOnPanicRepanicsErrAbortHandler(t *testing.T) {
-	var err error = assert.AnError
+	err := assert.AnError
 	log := &recordingLogger{}
 	func() {
 		defer func() {
@@ -140,7 +140,7 @@ func TestErrAbortHandlerAbortsWithoutServerLog(t *testing.T) {
 			res, err := srv.Client().Get(srv.URL)
 			require.Error(t, err)
 			if res != nil {
-				res.Body.Close()
+				_ = res.Body.Close()
 			}
 
 			assert.NotContains(t, serverLog.String(), "panic serving")
