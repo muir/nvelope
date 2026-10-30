@@ -2,6 +2,7 @@ package nvelope_test
 
 import (
 	"bytes"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -98,9 +99,9 @@ func TestCatchPanicConvertsOtherPanics(t *testing.T) {
 	assert.Equal(t, "boom", nvelope.RecoverInterface(got))
 }
 
-// abortEndpoint is the handler under test.  flushed writes and flushes
-// a partial body through DeferredWriter before the sentinel panic, which
-// is the shape of a streaming handler that then aborts.
+// abortEndpoint is the handler under test.  flushed copies a partial body
+// into net/http and flushes that buffer onto the wire before the sentinel
+// panic, which is the shape of a streaming handler that then aborts.
 func abortEndpoint(flushed bool) func(*nvelope.DeferredWriter) (nvelope.Response, error) {
 	return func(w *nvelope.DeferredWriter) (nvelope.Response, error) {
 		if flushed {
@@ -109,6 +110,9 @@ func abortEndpoint(flushed bool) func(*nvelope.DeferredWriter) (nvelope.Response
 			if err := w.Flush(); err != nil {
 				return nil, err
 			}
+			// DeferredWriter.Flush only copies into net/http's buffer.
+			// Flush the underlying writer so the partial body is on the wire.
+			w.UnderlyingWriter().(http.Flusher).Flush()
 		}
 		panic(http.ErrAbortHandler)
 	}
@@ -134,13 +138,24 @@ func TestErrAbortHandlerAbortsWithoutServerLog(t *testing.T) {
 			srv.Start()
 			t.Cleanup(srv.Close)
 
-			// The server closes the connection instead of finishing the
-			// response, so the client sees a transport error rather than
-			// a completed 500 whose body is the abort sentinel.
 			res, err := srv.Client().Get(srv.URL)
-			require.Error(t, err)
-			if res != nil {
-				_ = res.Body.Close()
+			if !flushed {
+				// Nothing was written, so the abort closes the connection
+				// before a response exists.
+				require.Error(t, err)
+				if res != nil {
+					_ = res.Body.Close()
+				}
+			} else {
+				// Headers and a partial body reached the client. Reading
+				// stops with unexpected EOF because the server closed the
+				// connection instead of finishing the response.
+				require.NoError(t, err)
+				defer func() { _ = res.Body.Close() }()
+				body, readErr := io.ReadAll(res.Body)
+				assert.Equal(t, http.StatusOK, res.StatusCode)
+				assert.Equal(t, "partial", string(body))
+				assert.ErrorIs(t, readErr, io.ErrUnexpectedEOF)
 			}
 
 			assert.NotContains(t, serverLog.String(), "panic serving")
