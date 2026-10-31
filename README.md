@@ -87,6 +87,10 @@ Have the endpoint return a 500 when there is a panic.
 notice a panic and create a useful error.  In an injection
 chain, use `nvelope.CatchPanic`.
 
+`http.ErrAbortHandler` is raised again so `net/http` can abort the
+response without logging a stack trace.  `httputil.ReverseProxy` panics
+with it when a streaming copy fails.
+
 ### Return 204 for nil responses
 
 Use an extra injector to trigger a 204 response for nil content instead

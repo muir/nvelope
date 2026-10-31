@@ -22,6 +22,7 @@ NotFound, Forbidden, and BadRequest provide easy ways to annotate
 an error return to cause a specific HTTP error code to be sent.
 
 CatchPanic makes it easy to turn panics into error returns.
+http.ErrAbortHandler is raised again so net/http can abort the request.
 
 The provided example puts it all together.
 */
