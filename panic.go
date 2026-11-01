@@ -2,6 +2,7 @@ package nvelope
 
 import (
 	"fmt"
+	"net/http"
 	"runtime/debug"
 
 	"github.com/muir/nject/v2"
@@ -27,10 +28,19 @@ func (err panicError) Error() string {
 
 // SetErrorOnPanic should be called as a defer.  It
 // sets an error value if there is a panic.
+//
+// A panic of http.ErrAbortHandler is raised again.  net/http, including
+// httputil.ReverseProxy when a streaming copy fails, panics with that
+// sentinel so the server can abort the response without logging a stack
+// trace.  The comparison is by identity, matching net/http.  A wrapped
+// error is recorded like any other panic.
 func SetErrorOnPanic(ep *error, log BasicLogger) {
 	r := recover()
 	if r == nil {
 		return
+	}
+	if r == http.ErrAbortHandler {
+		panic(r)
 	}
 	pe := panicError{
 		msg:   fmt.Sprint(r),
@@ -48,7 +58,8 @@ func SetErrorOnPanic(ep *error, log BasicLogger) {
 }
 
 // CatchPanic is a wrapper that catches downstream panics and returns
-// an error a downsteam provider panic's.
+// an error a downsteam provider panic's.  http.ErrAbortHandler is
+// raised again; see SetErrorOnPanic.
 var CatchPanic = nject.Provide("catch-panic", catchPanicInjector)
 
 func catchPanicInjector(inner func() error, log BasicLogger) (err error) {
