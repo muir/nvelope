@@ -262,7 +262,7 @@ func GenerateDecoder(
 			switch missingType.Kind() {
 			case reflect.Struct:
 				nonPointer = returnType
-			case reflect.Ptr:
+			case reflect.Pointer:
 				returnAddress = true
 				e := returnType.Elem()
 				if e.Kind() != reflect.Struct {
@@ -754,7 +754,7 @@ func getUnpacker(
 	}
 
 	switch fieldType.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		unpacker, err := getUnpacker(fieldType.Elem(), fieldName, name, base, tags, options)
 		if err != nil {
 			return unpack{}, err
